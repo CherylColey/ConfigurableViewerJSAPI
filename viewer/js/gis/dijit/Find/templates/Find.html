@@ -8,7 +8,7 @@
             </div>
             <div data-dojo-attach-point="queryTextDom">
                 <label>Search For Text:</label><br/>
-    			<input type="text" data-dojo-type="dijit.form.ValidationTextBox" data-dojo-attach-point="searchTextDijit" data-dojo-props="name:'searchText',trim:true,required:true,value:'',placeholder:'Enter the text you want to search for.',class:'searchText'" /><br/>
+    			<input type="text" data-dojo-type="dijit.form.ValidationTextBox" data-dojo-attach-point="searchTextDijit" data-dojo-props="name:'searchText',trim:true,required:true,intermediateChanges:true,value:'',placeholder:'Enter the text you want to search for.',class:'searchText'" data-dojo-attach-event="onKeyPress:enterSearch"/><br/>
             </div>
             <div data-dojo-attach-point="queryContainsDom">
                 <input type="checkbox" checked data-dojo-attach-point="containsSearchText" data-dojo-type="dijit.form.CheckBox" data-dojo-props="class:'containsCheck'"/>

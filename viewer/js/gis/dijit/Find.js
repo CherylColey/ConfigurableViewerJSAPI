@@ -403,6 +403,16 @@ define([
             return extent;
         },
 
+        enterSearch: function (event) {
+
+            if(event.keyCode == 13)
+            {
+                this.search();
+            }
+
+        },
+
+
         _onQueryChange: function (queryIdx) {
             if (queryIdx >= 0 && queryIdx < this.queries.length) {
                 this.queryIdx = queryIdx;
