@@ -12,6 +12,7 @@ define([
 
 function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, BasemapLayer, Point) {
 
+
 	// url to your proxy page, must be on same machine hosting you app. See proxy folder for readme.
 	esriConfig.defaults.io.proxyUrl = 'proxy/proxy.ashx';
 	esriConfig.defaults.io.alwaysUseProxy = false;
@@ -23,6 +24,9 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 	imageParameters.format = 'png32';
 
 	return {
+		// used for debugging your app
+		isDebug: false,
+
 		//default mapClick mode, mapClickMode lets widgets know what mode the map is in to avoid multipult map click actions from taking place (ie identify while drawing).
 		defaultMapClickMode: 'identify',
 		// map options, passed to map constructor. see: https://developers.arcgis.com/javascript/jsapi/map-amd.html#map1
@@ -135,6 +139,7 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 				opacity: 1.0,
 				visible: false,
 				imageParameters: imageParameters
+
 		 			}
 
 		},
@@ -173,6 +178,7 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 
 
 		],
+
 		// set include:true to load. For titlePane type set position the the desired order in the sidebar
 		widgets: {
 			growler: {
@@ -344,18 +350,23 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 					legendLayerInfos: true
 				}
 			},
-			TOC: {
+			layerControl: {
 				include: true,
-				id: 'toc',
+				id: 'layerControl',
 				type: 'titlePane',
-				path: 'gis/dijit/TOC',
+				path: 'gis/dijit/LayerControl',
 				title: 'Layers',
 				canFloat: true,
 				open: false,
+
 				position: 3,
+
 				options: {
 					map: true,
-					tocLayerInfos: true
+					layerControlLayerInfos: true,
+					separated: true,
+					vectorReorder: true,
+					overlayReorder: true
 				}
 			},
 			bookmarks: {

@@ -37,12 +37,8 @@ define([
         templateString: FindTemplate,
         baseClass: 'gis_FindDijit',
 
-        // Spatial Reference. uses the map's spatial reference if none provided
-        spatialReference: null,
-
-        // Use 0.0001 for decimal degrees (wkid 4326)
-        // or 500 for meters/feet
-        pointExtentSize: null,
+        // default Spatial Reference
+        outputSpatialReference: 4326,
 
         // default symbology for found features
         defaultSymbols: {
@@ -82,17 +78,6 @@ define([
 
         postCreate: function () {
             this.inherited(arguments);
-
-            if (this.spatialReference === null) {
-                this.spatialReference = this.map.spatialReference.wkid;
-            }
-            if (this.pointExtentSize === null) {
-                if (this.spatialReference === 4326) { // special case for geographic lat/lng
-                    this.pointExtentSize = 0.0001;
-                } else {
-                    this.pointExtentSize = 500; // could be feet or meters
-                }
-            }
 
             var pointSymbol = null, polylineSymbol = null, polygonSymbol = null;
             var pointRenderer = null, polylineRenderer = null, polygonRenderer = null;
@@ -199,7 +184,7 @@ define([
             findParams.contains = !this.containsSearchText.checked;
 
             findParams.outSpatialReference = {
-                wkid: this.spatialReference
+                wkid: this.outputSpatialReference
             };
 
             this.findResultsNode.innerHTML = 'Searching...';
@@ -212,7 +197,7 @@ define([
         createResultsGrid: function () {
             if (!this.resultsStore) {
                 this.resultsStore = new Memory({
-                    idProperty: 'id',
+                    idProperty: 'value',
                     data: []
                 });
             }
@@ -250,8 +235,8 @@ define([
             if (this.results.length > 0) {
                 var s = (this.results.length === 1) ? '' : 's';
                 resultText = this.results.length + ' Result' + s + ' Found';
-                this.highlightFeatures();
                 this.showResultsGrid();
+                this.highlightFeatures();
             } else {
                 resultText = 'No Results Found';
             }
@@ -276,11 +261,7 @@ define([
         },
 
         highlightFeatures: function () {
-            var unique = 0;
             array.forEach(this.results, function (result) {
-                // add a unique key for the store
-                result.id = unique;
-                unique++;
                 var graphic, feature = result.feature;
                 switch (feature.geometry.type) {
                     case 'point':
@@ -333,11 +314,12 @@ define([
 
             // zoom to feature
             if (result.length) {
-                var data = result[0].data;
+                var data = result[result.length - 1].data;
                 if (data) {
                     var feature = data.feature;
                     if (feature) {
                         var extent = feature.geometry.getExtent();
+                        console.log(feature);
                         if (!extent && feature.geometry.type === 'point') {
                             extent = this.getExtentFromPoint(feature);
                         }
@@ -350,7 +332,7 @@ define([
         },
 
         zoomToExtent: function (extent) {
-            this.map.setExtent(extent.expand(2.2));
+            this.map.setExtent(extent.expand(1.2));
         },
 
         clearResults: function () {
@@ -389,29 +371,10 @@ define([
         },
 
         getExtentFromPoint: function (point) {
-            var sz = this.pointExtentSize; // hack
+            var factor = 0.0001; // hack: 0.0001 of a decimal degree
             var pt = point.geometry;
-            var extent = new Extent({
-                'xmin': pt.x - sz,
-                'ymin': pt.y - sz,
-                'xmax': pt.x + sz,
-                'ymax': pt.y + sz,
-                'spatialReference': {
-                    wkid: this.spatialReference
-                }
-            });
-            return extent;
+            return new Extent(pt.x - factor, pt.y - factor, pt.x + factor, pt.y + factor, pt.SpatialReference);
         },
-
-        enterSearch: function (event) {
-
-            if(event.keyCode == 13)
-            {
-                this.search();
-            }
-
-        },
-
 
         _onQueryChange: function (queryIdx) {
             if (queryIdx >= 0 && queryIdx < this.queries.length) {
