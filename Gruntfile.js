@@ -109,12 +109,10 @@ module.exports = function(grunt) {
         options: {
           port: 3000,
           base: 'viewer',
-<<<<<<< HEAD
+
           hostname: '*'
-=======
-          hostname: '*',
-          middleware: middleware
->>>>>>> 9d20b1189a90636d39993c0c002629ca3b6fd67b
+       //   middleware: middleware
+
         }
       },
       build: {
