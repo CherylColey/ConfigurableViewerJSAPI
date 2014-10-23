@@ -1,8 +1,8 @@
 define([
     'esri/dijit/Basemap',
-    'esri/dijit/BasemapLayer',
-    'esri/layers/osm'
-], function (Basemap, BasemapLayer, osm) {
+    'esri/dijit/BasemapLayer'
+ //   'esri/layers/osm'
+], function (Basemap, BasemapLayer) {
     return {
         map: true, // needs a refrence to the map
         mode: 'custom', //must be either 'agol' or 'custom'

@@ -4,13 +4,13 @@ define([
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dojo/text!./IdentifyPanel/templates/IdentifyPanel.html',
-    'dojo/dom-construct',
-    'dijit/form/Button',
+    //'dojo/dom-construct',
+   // 'dijit/form/Button',
     'dijit/_WidgetsInTemplateMixin',
-    'dojo/dom-style',
-    'dojo/on'
-], function(declare, lang,  _WidgetBase, _TemplatedMixin, template, domConstruct,Button,_WidgetsInTemplateMixin,
- domStyle,on) {
+    'dojo/dom-style'
+    //'dojo/on'
+], function(declare, lang,  _WidgetBase, _TemplatedMixin, template, _WidgetsInTemplateMixin,
+ domStyle) {
  
     return declare([_WidgetBase, _TemplatedMixin,_WidgetsInTemplateMixin], {
         widgetsInTemplate: true,
@@ -50,11 +50,11 @@ define([
                 }
             },
 
-            selectPrevious: function (evt){
+            selectPrevious: function (){
                 this.map.infoWindow.selectPrevious();
             },
 
-            selectNext: function (evt){
+            selectNext: function (){
                 this.map.infoWindow.selectNext();
             },
 

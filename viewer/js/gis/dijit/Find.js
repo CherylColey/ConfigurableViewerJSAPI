@@ -3,16 +3,11 @@ define([
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
-    'dijit/form/Form',
-    'dijit/form/FilteringSelect',
-    'dijit/form/ValidationTextBox',
-    'dijit/form/CheckBox',
-    'dojo/dom',
     'dojo/dom-construct',
-    'dojo/dom-class',
     'dojo/_base/lang',
-    'dojo/_base/Color',
     'dojo/_base/array',
+    'dojo/on',
+    'dojo/keys',
     'dojo/store/Memory',
     'dgrid/OnDemandGrid',
     'dgrid/Selection',
@@ -23,22 +18,28 @@ define([
     'esri/symbols/SimpleMarkerSymbol',
     'esri/symbols/SimpleLineSymbol',
     'esri/symbols/SimpleFillSymbol',
-    'esri/layers/FeatureLayer',
     'esri/graphicsUtils',
     'esri/tasks/FindTask',
     'esri/tasks/FindParameters',
     'esri/geometry/Extent',
     'dojo/text!./Find/templates/Find.html',
+    'dijit/form/Form',
+    'dijit/form/FilteringSelect',
+    'dijit/form/ValidationTextBox',
+    'dijit/form/CheckBox',
     'xstyle/css!./Find/css/Find.css'
-], function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Form, FilteringSelect, ValidationTextBox, CheckBox, dom, domConstruct, domClass, lang, Color, array, Memory, OnDemandGrid, Selection, Keyboard, GraphicsLayer, Graphic, SimpleRenderer, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, FeatureLayer, graphicsUtils, FindTask, FindParameters, Extent, FindTemplate, css) {
-
+], function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, domConstruct, lang, array, on, keys, Memory, OnDemandGrid, Selection, Keyboard, GraphicsLayer, Graphic, SimpleRenderer, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, graphicsUtils, FindTask, FindParameters, Extent, FindTemplate) {
     return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
         widgetsInTemplate: true,
         templateString: FindTemplate,
         baseClass: 'gis_FindDijit',
 
-        // default Spatial Reference
-        outputSpatialReference: 4326,
+        // Spatial Reference. uses the map's spatial reference if none provided
+        spatialReference: null,
+
+        // Use 0.0001 for decimal degrees (wkid 4326)
+        // or 500 for meters/feet
+        pointExtentSize: null,
 
         // default symbology for found features
         defaultSymbols: {
@@ -46,21 +47,21 @@ define([
                 type: 'esriSMS',
                 style: 'esriSMSCircle',
                 size: 25,
-                color: [0, 255, 255, 255],
+                color: [0, 255, 255, 32],
                 angle: 0,
                 xoffset: 0,
                 yoffset: 0,
                 outline: {
                     type: 'esriSLS',
                     style: 'esriSLSSolid',
-                    color: [0, 0, 0, 255],
+                    color: [0, 255, 255, 255],
                     width: 2
                 }
             },
             polyline: {
                 type: 'esriSLS',
                 style: 'esriSLSSolid',
-                color: [0, 0, 255, 255],
+                color: [0, 255, 255, 255],
                 width: 3
             },
             polygon: {
@@ -79,15 +80,61 @@ define([
         postCreate: function () {
             this.inherited(arguments);
 
-            var pointSymbol = null, polylineSymbol = null, polygonSymbol = null;
-            var pointRenderer = null, polylineRenderer = null, polygonRenderer = null;
+            if (this.spatialReference === null) {
+                this.spatialReference = this.map.spatialReference.wkid;
+            }
+            if (this.pointExtentSize === null) {
+                if (this.spatialReference === 4326) { // special case for geographic lat/lng
+                    this.pointExtentSize = 0.0001;
+                } else {
+                    this.pointExtentSize = 500; // could be feet or meters
+                }
+            }
+
+            this.createGraphicLayers();
+
+            // allow pressing enter key to initiate the search
+            this.own(on(this.searchTextDijit, 'keyup', lang.hitch(this, function (evt) {
+                if (evt.keyCode === keys.ENTER) {
+                    this.search();
+                }
+            })));
+
+            this.queryIdx = 0;
+
+            // add an id so the queries becomes key/value pair store
+            var k = 0, queryLen = this.queries.length;
+            for (k = 0; k < queryLen; k++) {
+                this.queries[k].id = k;
+            }
+
+            // add the queries to the drop-down list
+            if (queryLen > 1) {
+                var queryStore = new Memory({
+                    data: this.queries
+                });
+                this.querySelectDijit.set('store', queryStore);
+                this.querySelectDijit.set('value', this.queryIdx);
+            } else {
+                this.querySelectDom.style.display = 'none';
+            }
+
+        },
+
+        createGraphicLayers: function () {
+            var pointSymbol = null,
+                polylineSymbol = null,
+                polygonSymbol = null;
+            var pointRenderer = null,
+                polylineRenderer = null,
+                polygonRenderer = null;
 
             var symbols = lang.mixin({}, this.symbols);
             // handle each property to preserve as much of the object heirarchy as possible
             symbols = {
                 point: lang.mixin(this.defaultSymbols.point, symbols.point),
                 polyline: lang.mixin(this.defaultSymbols.polyline, symbols.polyline),
-                polygon:  lang.mixin(this.defaultSymbols.polygon, symbols.polygon)
+                polygon: lang.mixin(this.defaultSymbols.polygon, symbols.polygon)
             };
 
             // points
@@ -135,33 +182,17 @@ define([
             this.map.addLayer(this.polygonGraphics);
             this.map.addLayer(this.polylineGraphics);
             this.map.addLayer(this.pointGraphics);
-
-            var k = 0, queryLen = this.queries.length;
-
-            // add an id so it becomes key/value pair store
-            for (k = 0; k < queryLen; k++) {
-                this.queries[k].id = k;
-            }
-            this.queryIdx = 0;
-            if (queryLen > 1) {
-                var queryStore = new Memory({
-                    data: this.queries
-                });
-                this.querySelectDijit.set('store', queryStore);
-                this.querySelectDijit.set('value', this.queryIdx);
-            } else {
-                this.querySelectDom.style.display = 'none';
-            }
         },
         search: function () {
             var query = this.queries[this.queryIdx];
-            var searchText = this.searchTextDijit.value;
-            if (query && query.minChars && searchText) {
-                if (searchText.length === 0 || (query.minChars && (searchText.length < query.minChars))) {
-                    this.findResultsNode.innerHTML = 'You must enter at least ' + query.minChars + ' characters.';
-                    this.findResultsNode.style.display = 'block';
-                    return;
-                }
+            var searchText = this.searchTextDijit.get('value');
+            if (!query || !searchText || searchText.length === 0) {
+                return;
+            }
+            if (query.minChars && (searchText.length < query.minChars)) {
+                this.findResultsNode.innerHTML = 'You must enter at least ' + query.minChars + ' characters.';
+                this.findResultsNode.style.display = 'block';
+                return;
             }
 
             this.createResultsGrid();
@@ -184,7 +215,7 @@ define([
             findParams.contains = !this.containsSearchText.checked;
 
             findParams.outSpatialReference = {
-                wkid: this.outputSpatialReference
+                wkid: this.spatialReference
             };
 
             this.findResultsNode.innerHTML = 'Searching...';
@@ -197,7 +228,7 @@ define([
         createResultsGrid: function () {
             if (!this.resultsStore) {
                 this.resultsStore = new Memory({
-                    idProperty: 'value',
+                    idProperty: 'id',
                     data: []
                 });
             }
@@ -209,10 +240,10 @@ define([
                     cellNavigation: false,
                     showHeader: true,
                     store: this.resultsStore,
-                    columns:{
-                      layerName: 'Layer',
-                      foundFieldName: 'Field',
-                      value: 'Result'
+                    columns: {
+                        layerName: 'Layer',
+                        foundFieldName: 'Field',
+                        value: 'Result'
                     },
                     sort: [{
                         attribute: 'value',
@@ -235,8 +266,8 @@ define([
             if (this.results.length > 0) {
                 var s = (this.results.length === 1) ? '' : 's';
                 resultText = this.results.length + ' Result' + s + ' Found';
-                this.showResultsGrid();
                 this.highlightFeatures();
+                this.showResultsGrid();
             } else {
                 resultText = 'No Results Found';
             }
@@ -261,24 +292,37 @@ define([
         },
 
         highlightFeatures: function () {
+            var unique = 0;
             array.forEach(this.results, function (result) {
+                // add a unique key for the store
+                result.id = unique;
+                unique++;
                 var graphic, feature = result.feature;
                 switch (feature.geometry.type) {
-                    case 'point':
+                case 'point':
+                    // only add points to the map that have an X/Y
+                    if (feature.geometry.x && feature.geometry.y) {
                         graphic = new Graphic(feature.geometry);
                         this.pointGraphics.add(graphic);
-                        break;
-                    case 'polyline':
+                    }
+                    break;
+                case 'polyline':
+                    // only add polylines to the map that have paths
+                    if (feature.geometry.paths && feature.geometry.paths.length > 0) {
                         graphic = new Graphic(feature.geometry);
                         this.polylineGraphics.add(graphic);
-                        break;
-                    case 'polygon':
+                    }
+                    break;
+                case 'polygon':
+                    // only add polygons to the map that have rings
+                    if (feature.geometry.rings && feature.geometry.rings.length > 0) {
                         graphic = new Graphic(feature.geometry, null, {
                             ren: 1
                         });
                         this.polygonGraphics.add(graphic);
-                        break;
-                    default:
+                    }
+                    break;
+                default:
                 }
             }, this);
 
@@ -306,7 +350,9 @@ define([
                 }
             }
 
-            this.zoomToExtent(zoomExtent);
+            if (zoomExtent) {
+                this.zoomToExtent(zoomExtent);
+            }
         },
 
         selectFeature: function (event) {
@@ -314,12 +360,11 @@ define([
 
             // zoom to feature
             if (result.length) {
-                var data = result[result.length - 1].data;
+                var data = result[0].data;
                 if (data) {
                     var feature = data.feature;
                     if (feature) {
                         var extent = feature.geometry.getExtent();
-                        console.log(feature);
                         if (!extent && feature.geometry.type === 'point') {
                             extent = this.getExtentFromPoint(feature);
                         }
@@ -371,9 +416,18 @@ define([
         },
 
         getExtentFromPoint: function (point) {
-            var factor = 0.0001; // hack: 0.0001 of a decimal degree
+            var sz = this.pointExtentSize; // hack
             var pt = point.geometry;
-            return new Extent(pt.x - factor, pt.y - factor, pt.x + factor, pt.y + factor, pt.SpatialReference);
+            var extent = new Extent({
+                'xmin': pt.x - sz,
+                'ymin': pt.y - sz,
+                'xmax': pt.x + sz,
+                'ymax': pt.y + sz,
+                'spatialReference': {
+                    wkid: this.spatialReference
+                }
+            });
+            return extent;
         },
 
         _onQueryChange: function (queryIdx) {
