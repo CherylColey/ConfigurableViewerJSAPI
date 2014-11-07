@@ -30,7 +30,7 @@ define([
                 })
             },
             satellite: {
-                title: 'Satellite',
+                title: '2014 Aerial',
                 basemap: new Basemap({
                     id: 'satellite',
                     layers: [new BasemapLayer({

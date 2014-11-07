@@ -203,7 +203,7 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 					geocoderOptions: {
 						autoComplete: true,
 						arcgisGeocoder: {
-							placeholder: 'Enter an address or place'
+							placeholder: 'Enter address'
 						}
 					}
 				}
