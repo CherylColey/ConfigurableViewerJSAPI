@@ -2,7 +2,7 @@ define({
 	map: true,
 	queries: [
 		{
-			description: 'Account Number or Name',
+			description: 'PID or Name',
 			url: 'https://ags2.scgov.net/arcgis/rest/services/ScOperational/PropertySearch/MapServer',
 			layerIds: [0],
 			searchFields: ['ID', 'NAME1','NAME_ADD2'],

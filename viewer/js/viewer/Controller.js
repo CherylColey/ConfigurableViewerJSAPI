@@ -66,8 +66,20 @@ define([
 			if (config.isDebug) {
 				window.app = this; //dev only
 			}
+
+			//var URLparse = document.URL;
+			//URLparse = URLparse.split('http://localhost:3000/index.html#?id=');
+			//alert(URLparse);
+
 		},
 		// add topics for subscribing and publishing
+
+
+
+
+
+
+
 		addTopics: function () {
 			// toggle a sidebar pane
 			topic.subscribe('viewer/togglePane', lang.hitch(this, function (args) {

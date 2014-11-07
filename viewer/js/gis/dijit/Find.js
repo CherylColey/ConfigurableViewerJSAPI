@@ -377,7 +377,7 @@ define([
         },
 
         zoomToExtent: function (extent) {
-            this.map.setExtent(extent.expand(1.2));
+            this.map.setExtent(extent.expand(5.2));
         },
 
         clearResults: function () {

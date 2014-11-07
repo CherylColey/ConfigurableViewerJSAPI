@@ -52,7 +52,7 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 			options: {
 				id: 'parcels',
 				opacity: 1.0,
-				visible: false,
+				visible: true,
 				imageParameters: imageParameters
 					}
 		},
@@ -83,8 +83,8 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 			sublayerToggle: false, //true to automatically turn on sublayers
 			options: {
 				id: 'appraiser',
-				opacity: 1.0,
-				visible: false,
+				opacity: 0.8,
+				visible: true,
 				imageParameters: imageParameters
 					},
 			identifyLayerInfos: {
@@ -102,7 +102,7 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 			collapsed: false,
 			options: {
 				id: 'str',
-				opacity: 1.0,
+				opacity: 0.8,
 				visible: false,
 				imageParameters: imageParameters
 		 			}
@@ -114,7 +114,8 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 			type: 'dynamic',
 			url: 'https://ags2.scgov.net/arcgis/rest/services/ScpaInternal/scpaAADT/MapServer',
 			title: 'Annual Average Daily Traffic',
-			slider: false,
+			
+			slider: true,
 			noLegend: false,
 			collapsed: false,
 			options: {
@@ -144,6 +145,7 @@ function(units, Extent, esriConfig, GeometryService, ImageParameters, Basemap, B
 
 		},
 
+		
 		{
 			type: 'image',
 			url: 'https://ags2.scgov.net/arcgis/rest/services/ImageServices/SC2013/ImageServer',
