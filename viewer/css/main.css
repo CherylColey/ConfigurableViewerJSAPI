@@ -5,7 +5,7 @@ body, html {
     padding: 0;
     overflow: hidden;
     /*font-family: Tahoma;*/
-    font-size: 14px;
+    font-size: 8px;
 }
 .appHeader {
     background: url("../images/linen.jpg") repeat-x scroll left top transparent;
@@ -204,6 +204,7 @@ body, html {
     padding: 1px !important;
 }
 .dbootstrap .dijitTitlePane {
+    
     border: 1px solid #DDDDDD;
     margin-bottom: 2px;
     -webkit-border-radius: 4px;
@@ -247,7 +248,7 @@ body, html {
     border-collapse: collapse;
 }
 .esriPopup .contentPane table.attrTable td {
-    padding: 2px;
+    padding: 1px;
 }
 .esriPopup .contentPane table.attrTable td.attrName {
     text-align: right;

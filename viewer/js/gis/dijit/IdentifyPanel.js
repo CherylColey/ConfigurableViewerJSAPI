@@ -8,6 +8,8 @@ define([
    // 'dijit/form/Button',
     'dijit/_WidgetsInTemplateMixin',
     'dojo/dom-style'
+    //'xstyle/css!./IdentifyPanel/css/IdentifyPanel.css'
+    
     
     //'dojo/on'
 ], function(declare, lang,  _WidgetBase, _TemplatedMixin, template, _WidgetsInTemplateMixin,
