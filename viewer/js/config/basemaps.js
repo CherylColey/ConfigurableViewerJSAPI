@@ -30,13 +30,13 @@ define([
                 })
             },
             satellite: {
-                title: '2014 Aerial',
+                title: '2015 Aerial',
                 basemap: new Basemap({
                     id: 'satellite',
                     layers: [new BasemapLayer({
                         url: 'https://ags2.scgov.net/arcgis/rest/services/ScpaInternal/scpaZoomGrid_WM/MapServer'
                     }), new BasemapLayer({
-                        url: 'https://ags2.scgov.net/arcgis/rest/services/ImageServices/SC2014/ImageServer'
+                        url: 'https://ags2.scgov.net/arcgis/rest/services/ImageServices/SC2015/ImageServer'
                     })
 
                     ]
